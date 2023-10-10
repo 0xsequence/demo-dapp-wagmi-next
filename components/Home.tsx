@@ -2,15 +2,16 @@ import { Box, Button, Text } from '@0xsequence/design-system'
 import { sequence } from '0xsequence'
 import ethers from 'ethers'
 import type { NextPage } from 'next';
-import { useAccount, useNetwork, useConnect, useDisconnect, useSigner, useProvider } from 'wagmi'
+import { useAccount, useNetwork, useConnect, useDisconnect, usePublicClient, useWalletClient } from 'wagmi'
 
 const Home: NextPage = () => {
+  const publicClient = usePublicClient()
+  const { data: walletClient } = useWalletClient()
+
   const { isConnected, address } = useAccount()
   const { chain } = useNetwork()
   const { connect, connectors, isLoading } = useConnect()
   const { disconnect } = useDisconnect()
-  const provider = useProvider()
-  const { data: signer } = useSigner()
 
   const onConnect = () => {
     const sequenceConnector = connectors.find(connector => connector.id === 'sequence')
@@ -19,6 +20,12 @@ const Home: NextPage = () => {
         connector: sequenceConnector
       })
     }
+    // const mmConnector = connectors.find(connector => connector.id === 'metaMask')
+    // if (mmConnector) {
+    //   connect({
+    //     connector: mmConnector
+    //   })
+    // }
   }
 
   const onDisconnect = () => {
@@ -26,7 +33,7 @@ const Home: NextPage = () => {
   }
 
   const onSignMessage = async () => {
-    if (!signer || !provider) return
+    if (!publicClient || !walletClient) return
     try {
       const message = `Two roads diverged in a yellow wood,
   Robert Frost poet
@@ -54,11 +61,20 @@ const Home: NextPage = () => {
   I took the one less traveled by,
   And that has made all the difference.`
   
-      // sign
-      const sig = await signer.signMessage(message)
+      const [account] = await walletClient.getAddresses()
+
+      const sig = await walletClient.signMessage({
+        message,
+        account
+      })
       console.log('signature:', sig)
   
-      const isValid = await sequence.utils.isValidMessageSignature(await signer.getAddress(), message, sig, provider as ethers.providers.Web3Provider)
+      const isValid = await publicClient.verifyMessage({
+        address: account,
+        message,
+        signature: sig
+      })
+
       console.log('isValid?', isValid)
     } catch(e) {
       console.error(e)

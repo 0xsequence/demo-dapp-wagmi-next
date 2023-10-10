@@ -1,47 +1,53 @@
+import { sequence } from '0xsequence'
 import React from 'react'
 import { SequenceConnector } from '@0xsequence/wagmi-connector'
-import { configureChains, createClient, WagmiConfig } from 'wagmi';
+import { configureChains, createConfig, WagmiConfig } from 'wagmi';
 import { mainnet, polygon, optimism, arbitrum } from 'wagmi/chains';
-import { publicProvider } from 'wagmi/providers/public';
+import { MetaMaskConnector } from '@wagmi/core/connectors/metaMask'
 
-const { chains, provider, webSocketProvider } = configureChains(
+const { chains, publicClient, webSocketPublicClient } = configureChains(
+  [mainnet, polygon, optimism, arbitrum],
   [
-    mainnet,
-    polygon,
-    optimism,
-    arbitrum,
-  ],
-  [
-    publicProvider(),
+    (chain) => {
+      const network = sequence.network.findNetworkConfig(sequence.network.allNetworks, chain.id)
+      if (!network) {
+        throw new Error(`Could not find network config for chain ${chain.id}`)
+      }
+
+      return { chain, rpcUrls: { http: [network.rpcUrl] } }
+    }
   ]
-);
+)
 
 const connectors = [
   new SequenceConnector({
     chains,
     options: {
+      defaultNetwork: 137,
       connect: {
         app: 'Demo',
-        networkId: 137
-      }
+        walletAppURL: 'https://sequence.app'
+      },
     }
   }),
+  new MetaMaskConnector({
+    chains,
+  })
 ]
 
-const wagmiClient = createClient({
-  autoConnect: true,
+const wagmiConfig = createConfig({
+  autoConnect: false,
   connectors,
-  provider,
-  webSocketProvider,
-});
-
+  publicClient,
+  webSocketPublicClient
+})
 interface WagmiProviderProps {
   children: React.ReactNode
 }
 
 function WagmiProvider({ children }: WagmiProviderProps) {
   return (
-    <WagmiConfig client={wagmiClient}>
+    <WagmiConfig config={wagmiConfig}>
       {children}
     </WagmiConfig>
   );
