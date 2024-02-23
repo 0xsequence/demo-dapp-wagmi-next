@@ -1,55 +1,51 @@
 import { sequence } from '0xsequence'
 import React from 'react'
-import { SequenceConnector } from '@0xsequence/wagmi-connector'
-import { configureChains, createConfig, WagmiConfig } from 'wagmi';
-import { mainnet, polygon, optimism, arbitrum } from 'wagmi/chains';
-import { MetaMaskConnector } from '@wagmi/core/connectors/metaMask'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { sequenceWallet } from '@0xsequence/wagmi-connector'
+import { createConfig, WagmiProvider as WagmiWrapper } from 'wagmi';
+import { mainnet, polygon, optimism, arbitrum, Chain } from 'wagmi/chains';
+import { http } from 'viem'
 
-const { chains, publicClient, webSocketPublicClient } = configureChains(
-  [mainnet, polygon, optimism, arbitrum],
-  [
-    (chain) => {
-      const network = sequence.network.findNetworkConfig(sequence.network.allNetworks, chain.id)
-      if (!network) {
-        throw new Error(`Could not find network config for chain ${chain.id}`)
-      }
+const queryClient = new QueryClient() 
 
-      return { chain, rpcUrls: { http: [network.rpcUrl] } }
-    }
-  ]
-)
+const chains = [mainnet, polygon, optimism, arbitrum ] as [Chain, ...Chain[]]
 
 const connectors = [
-  new SequenceConnector({
-    chains,
-    options: {
-      defaultNetwork: 137,
-      connect: {
-        app: 'Demo',
-        walletAppURL: 'https://sequence.app'
-      },
-    }
+  sequenceWallet({
+    defaultNetwork: 137,
+    projectAccessKey: 'iK0DPkHRt0IFo8o4M3fZIIOAAAAAAAAAA',
+    connect: {
+      app: 'Demo',
+      walletAppURL: 'https://sequence.app'
+    },
   }),
-  new MetaMaskConnector({
-    chains,
-  })
 ]
 
-const wagmiConfig = createConfig({
-  autoConnect: false,
-  connectors,
-  publicClient,
-  webSocketPublicClient
-})
 interface WagmiProviderProps {
   children: React.ReactNode
 }
 
 function WagmiProvider({ children }: WagmiProviderProps) {
+  const transports: any = {}
+
+  chains.forEach(chain => {
+    const network = sequence.network.findNetworkConfig(sequence.network.allNetworks, chain.id)
+    if (!network) return
+    transports[chain.id] = http(network.rpcUrl)
+  })
+
+  const wagmiConfig = createConfig({
+    chains,
+    connectors,
+    transports,
+  })
+
   return (
-    <WagmiConfig config={wagmiConfig}>
-      {children}
-    </WagmiConfig>
+    <WagmiWrapper config={wagmiConfig}>
+      <QueryClientProvider client={queryClient}>
+        {children}
+      </QueryClientProvider>
+    </WagmiWrapper>
   );
 }
 

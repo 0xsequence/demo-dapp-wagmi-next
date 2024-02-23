@@ -2,15 +2,15 @@ import { Box, Button, Text } from '@0xsequence/design-system'
 import { sequence } from '0xsequence'
 import ethers from 'ethers'
 import type { NextPage } from 'next';
-import { useAccount, useNetwork, useConnect, useDisconnect, usePublicClient, useWalletClient } from 'wagmi'
+import NextLink from 'next/link'
+import { useAccount, useConnect, useDisconnect, usePublicClient, useWalletClient } from 'wagmi'
 
 const Home: NextPage = () => {
   const publicClient = usePublicClient()
   const { data: walletClient } = useWalletClient()
 
-  const { isConnected, address } = useAccount()
-  const { chain } = useNetwork()
-  const { connect, connectors, isLoading } = useConnect()
+  const { isConnected, address, chain } = useAccount()
+  const { connect, connectors, isPending: isLoading } = useConnect()
   const { disconnect } = useDisconnect()
 
   const onConnect = () => {
@@ -91,6 +91,7 @@ const Home: NextPage = () => {
       <Text variant="xlarge">
         Sequence + Wagmi + NextJs = ❤️
       </Text>
+      <NextLink href="/test" />
       <Box
         justifyContent="center"
         alignItems="center"

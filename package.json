@@ -11,14 +11,15 @@
   "dependencies": {
     "0xsequence": "^1.2.4",
     "@0xsequence/design-system": "^1.0.1",
-    "@0xsequence/wagmi-connector": "^2.1.4",
+    "@0xsequence/wagmi-connector": "3.0.2",
+    "@tanstack/react-query": "^5.22.2",
     "ethers": "^5.7.2",
     "framer-motion": "^10.12.4",
     "next": "^13.1.6",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",
-    "viem": "^1.15.1",
-    "wagmi": "^1.4.3"
+    "viem": "2.7.8",
+    "wagmi": "2.5.7"
   },
   "devDependencies": {
     "@types/node": "^17.0.35",
