@@ -91,7 +91,7 @@ const Home: NextPage = () => {
       <Text variant="xlarge">
         Sequence + Wagmi + NextJs = ❤️
       </Text>
-      <NextLink href="/test" />
+      <NextLink href="/test">go to test page</NextLink>
       <Box
         justifyContent="center"
         alignItems="center"

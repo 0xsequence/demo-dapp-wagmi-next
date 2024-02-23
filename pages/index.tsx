@@ -1,11 +1,7 @@
-import { useIsMounted } from '../hooks'
+import dynamic from 'next/dynamic'
 import Home from '../components/Home'
 
-const Page = () => {
-  const isMounted = useIsMounted()
-
-  if (!isMounted) return null
-  return (
+const Page = () => {  return (
     <>
       <Home />
     </>
